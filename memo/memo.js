@@ -6,6 +6,7 @@ const render = require("./memo_render.js");
 const menu = new Menu();
 
 // html event start
+
 var timer = 0;
 $("textarea").on("input", function (e) {
     let $this = $(this);
@@ -17,6 +18,22 @@ $("textarea").on("input", function (e) {
         }
         render.memoRender.sendMemoDetail(ipcRenderer, {id: remote.getCurrentWindow().id, text: thisVal});
     }, 250);
+});
+
+remote.getCurrentWindow().on("move", () => {
+    let position = remote.getCurrentWindow().getPosition();
+    let [ x, y ] = position;
+
+    if(timer) clearTimeout(timer);
+
+    timer = setTimeout(() => {
+        timer = null;
+        render.memoRender.savePosition(ipcRenderer, {id: remote.getCurrentWindow().id, x: x, y: y});
+    }, 250);
+});
+
+remote.getCurrentWindow().on("show", () => {
+    render.memoRender.memoInit(ipcRenderer, {id: remote.getCurrentWindow().id});
 });
 
 // html event end
@@ -39,6 +56,12 @@ window.addEventListener("contextmenu", (e) => {
 // context menu end
 
 // ipcRenderer.on Start
+
+ipcRenderer.on("MEMOINIT-reply", (event, obj) => {
+    if(obj.text) {
+        $("#textObj").val(obj.text);
+    }
+});
 
 ipcRenderer.on("Close-Memo-Reply", (event, obj) => {
     remote.getCurrentWindow().close();    
