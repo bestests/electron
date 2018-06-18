@@ -32,7 +32,7 @@ const init = () => {
 
     let isNew = true;
 
-    mainWin = new BrowserWindow({width:0, height: 0, show: false});
+    mainWin = new BrowserWindow({width:800, height: 600, show: false});
 
     mainWin.loadFile("./main.html");
 //    mainWin.show();
@@ -66,18 +66,30 @@ const init = () => {
                 }
             }).then(saveObj => {
 
+                let isNew = true;
+
                 for(let i in saveObj) {
 
                     let saveMemo = saveObj[i];
 
                     if(saveMemo) {
+
                         let { x, y, width, height, text } = saveMemo;
 
                         createMemo({x: x, y:y, width: width, height: height, text: text});
+
+                        isNew = false;
+
                     } else {
-                        createMemo();
+
+                        if(isNew) createMemo();
+
+                        isNew = false;
                     }
                 }
+
+                if(isNew) createMemo();
+
             }).catch(() => {
                 createMemo();
             });
@@ -98,7 +110,7 @@ const createMemo = (obj) => {
     let memo = new BrowserWindow(options);
 
     memo.loadFile("./memo.html");
-    memo.openDevTools();
+//    memo.openDevTools();
 
     memoObj[memo.id + ""] = {window: memo};
 
@@ -140,6 +152,7 @@ app.on("ready", () => {
             createMemo();
         }},
         {label: "Quit", click: () => {
+            saveFile();
             app.quit();
         }}
     ]);
