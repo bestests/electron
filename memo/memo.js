@@ -25,7 +25,7 @@ $("textarea").on("input", function (e) {
 remote.getCurrentWindow().on("move", () => {
     let position = remote.getCurrentWindow().getPosition();
     let [ x, y ] = position;
-
+    console.log(remote.getCurrentWindow().getPosition());
     if(timer) clearTimeout(timer);
 
     timer = setTimeout(() => {
