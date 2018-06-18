@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, Tray, Menu } = require("electron");
 const fs = require("fs");
 
 let mainWin;
+let tray;
 const memoObj = {};
 var saveObj = {};
 
@@ -31,10 +32,10 @@ const init = () => {
 
     let isNew = true;
 
-    mainWin = new BrowserWindow({width:0, height: 0, transparent: true, frame: false});
+    mainWin = new BrowserWindow({width:0, height: 0, show: false});
 
     mainWin.loadFile("./main.html");
-    mainWin.show();
+//    mainWin.show();
 
     fs.access("./save.txt", fs.constants.R_OK, (err) => {
         if(err) {
@@ -129,7 +130,22 @@ const saveFile = () => {
 }
 
 app.on("ready", () => {
+
     init();
+
+    tray = new Tray("./images/sticky.ico");
+
+    const trayMenu = Menu.buildFromTemplate([
+        {label: "New Memo", click: () => {
+            createMemo();
+        }},
+        {label: "Quit", click: () => {
+            app.quit();
+        }}
+    ]);
+
+    tray.setToolTip("Memo");
+    tray.setContextMenu(trayMenu);
 
     ipcMain.on("MEMOINIT", (event, obj) => {
         console.log(obj);
