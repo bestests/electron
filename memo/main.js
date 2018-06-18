@@ -5,32 +5,65 @@ let mainWin;
 const memoObj = {};
 var saveObj = {};
 
+const Memo = function (x = 810, y=375, width=300, heigth=300, text="") {
+    this.x               = x;
+    this.y               = y;
+    this.width           = width;
+    this.height          = heigth;
+    this.text            = text;
+    this.backgroundColor = "#ffff00",
+    this.frame           = false,
+    this.show            = false
+
+    return {
+        x: this.x,
+        y: this.y,
+        width: this.width,
+        height: this.height,
+        text : this.text,
+        backgroundColor: this.backgroundColor,
+        frame: this.frame,
+        show: this.show
+    };
+};
+
 const init = () => {
 
     let isNew = true;
 
-    mainWin = new BrowserWindow({width:600, height: 400, /*transparent: true, frame: false*/});
+    mainWin = new BrowserWindow({width:0, height: 0, transparent: true, frame: false});
 
     mainWin.loadFile("./main.html");
     mainWin.show();
 
     fs.access("./save.txt", fs.constants.R_OK, (err) => {
-        if(err.code === "ENOENT") {
-            saveFile();
+        if(err) {
+            if(err.code === "ENOENT") {
+                saveFile();
+                createMemo();
+            }
         } else {
 
-            let file = fs.readFileSync("./save.txt", (err) => {
+            let fileData = fs.readFileSync("./save.txt", (err) => {
                 if(err) {
                     console.error(err);
                 }
-            });
+            }).toString();
 
-            let fileData = "";
+            new Promise((resolve, reject) => {
+                if(fileData) {
 
-            if(file) fileData = file.toString();
+                    var saveObj = JSON.parse(fileData);
 
-            if(fileData) {
-                var saveObj = JSON.parse(fileData);
+                    if(saveObj && Object.keys(saveObj).length > 0) {
+                        resolve(saveObj);
+                    } else {
+                        reject();
+                    }
+                } else {
+                    reject();
+                }
+            }).then(saveObj => {
 
                 for(let i in saveObj) {
 
@@ -40,36 +73,25 @@ const init = () => {
                         let { x, y, width, height, text } = saveMemo;
 
                         createMemo({x: x, y:y, width: width, height: height, text: text});
-                        isNew = false;
+                    } else {
+                        createMemo();
                     }
                 }
-            }
+            }).catch(() => {
+                createMemo();
+            });
         }
     });
-
-    if(isNew) {
-        createMemo();
-    }
 };
 
 const createMemo = (obj) => {
-    console.log(obj);
-    let options = {
-        width: 300,
-        height: 300,
-        backgroundColor: "#ffff00",
-        frame: false,
-        show: false
-    };
 
-    let text = "";
+    let options;
 
     if(obj) {
-        if(obj.x)      options.x      = obj.x;
-        if(obj.y)      options.y      = obj.y;
-        if(obj.width)  options.width  = obj.width;
-        if(obj.height) options.height = obj.height;
-        if(obj.text)   text           = obj.text;
+        options = new Memo(obj.x, obj.y, obj.width, obj.height, obj.text);
+    } else {
+        options = new Memo();
     }
 
     let memo = new BrowserWindow(options);
@@ -90,7 +112,7 @@ const createMemo = (obj) => {
             y: options.y,
             width: options.width,
             height: options.height,
-            text: text
+            text: options.text
         };
     });
 };

@@ -23,7 +23,7 @@ $("textarea").on("input", function (e) {
     }, 250);
 });
 
-remote.getCurrentWindow().on("move", () => {
+thisWin.on("move", () => {
 
     let [ x, y ] = thisWin.getPosition();
 
@@ -35,14 +35,14 @@ remote.getCurrentWindow().on("move", () => {
     }, 250);
 });
 
-remote.getCurrentWindow().on("resize", () => {
+thisWin.on("resize", () => {
 
     let [ width, height ] = thisWin.getSize();
 
     render.saveSize(ipcRenderer, {id: thisWin.id, width: width, height: height});
 });
 
-remote.getCurrentWindow().on("show", () => {
+thisWin.on("show", () => {
     render.memoInit(ipcRenderer, {id: thisWin.id});
 });
 
