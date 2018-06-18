@@ -1,8 +1,7 @@
 const $ = require("jQuery");
 const { remote, ipcRenderer } = require("electron");
 const { Menu, MenuItem } = remote;
-const render = require("./memo_render.js");
-const memoRender = render.memoRender;
+const render = require("./memo_render.js").memoRender;
 
 const menu = new Menu();
 
@@ -19,7 +18,7 @@ $("textarea").on("input", function (e) {
             thisVal = encodeURI(thisVal);
         }
 
-        render.memoRender.sendMemoDetail(ipcRenderer, {id: remote.getCurrentWindow().id, text: thisVal});
+        render.sendMemoDetail(ipcRenderer, {id: remote.getCurrentWindow().id, text: thisVal});
     }, 250);
 });
 
@@ -31,7 +30,7 @@ remote.getCurrentWindow().on("move", () => {
 
     timer = setTimeout(() => {
         timer = null;
-        render.memoRender.savePosition(ipcRenderer, {id: remote.getCurrentWindow().id, x: x, y: y});
+        render.savePosition(ipcRenderer, {id: remote.getCurrentWindow().id, x: x, y: y});
     }, 250);
 });
 
@@ -39,7 +38,7 @@ remote.getCurrentWindow().on("resize", () => {
     let size              = remote.getCurrentWindow().getSize();
     let [ width, height ] = size;
 
-    memoRender.saveSize(ipcRenderer, {id: remote.getCurrentWindow().id, width: width, height: height});
+    render.saveSize(ipcRenderer, {id: remote.getCurrentWindow().id, width: width, height: height});
 });
 
 remote.getCurrentWindow().on("show", () => {
@@ -51,11 +50,11 @@ remote.getCurrentWindow().on("show", () => {
 // context menu start
 
 menu.append(new MenuItem({label: "New Memo", click() {
-    render.memoRender.sendNewMemo(ipcRenderer);
+    render.sendNewMemo(ipcRenderer);
 }}));
 
 menu.append(new MenuItem({label: "Close", click() {
-    render.memoRender.closeMemo(ipcRenderer, remote.getCurrentWindow().id);
+    render.closeMemo(ipcRenderer, remote.getCurrentWindow().id);
 }}));
 
 window.addEventListener("contextmenu", (e) => {
