@@ -161,9 +161,9 @@ app.on("ready", () => {
     tray.setContextMenu(trayMenu);
 
     ipcMain.on("MEMOINIT", (event, obj) => {
-        console.log(obj);
+        
         if(obj.id) {
-            console.log(saveObj[obj.id]);
+            
             if(saveObj[obj.id].text) {
                 event.sender.send("MEMOINIT-reply", {id: obj.id, text: saveObj[obj.id].text});
             }
@@ -175,7 +175,7 @@ app.on("ready", () => {
     });
 
     ipcMain.on("SAVE_EXIT", (event, obj) => {
-        console.log("SAVE_EXIT");
+      
         for(let i in memoObj) {
             if(memoObj) {
                 if(memoObj[i]) {
@@ -192,15 +192,15 @@ app.on("ready", () => {
     });
 
     ipcMain.on("SAVE-TEXT", (event, obj) => {
-        console.log(obj);
+        
         if(obj) {
             if(obj.text) {
-                console.log(obj.text);
+                
                 let thisId = obj.id + "";
                 if(!saveObj[thisId]) saveObj[thisId] = {};
-                console.log(saveObj);
+                
                 saveObj[thisId].text = obj.text;
-                console.log(saveObj);
+                
                 saveFile();
             }
         }
@@ -226,7 +226,7 @@ app.on("ready", () => {
     });
 
     ipcMain.on("Close-Memo", (event, obj) => {
-        console.log("Close-Memo - " + obj.idx);
+        
         memoObj[obj.idx] = null;
         saveObj[obj.idx] = null;
         saveFile();
