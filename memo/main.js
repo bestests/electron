@@ -14,27 +14,38 @@ const init = () => {
     mainWin.loadFile("./main.html");
     mainWin.show();
 
-    let fileData = fs.readFileSync("./save.txt", (err) => {
-        if(err) {
-            console.error(err);
-        }
-    }).toString();
+    fs.access("./save.txt", fs.constants.R_OK, (err) => {
+        if(err.code === "ENOENT") {
+            saveFile();
+        } else {
 
-    if(fileData) {
-        var saveObj = JSON.parse(fileData);
+            let file = fs.readFileSync("./save.txt", (err) => {
+                if(err) {
+                    console.error(err);
+                }
+            });
 
-        for(let i in saveObj) {
+            let fileData = "";
 
-            let saveMemo = saveObj[i];
+            if(file) fileData = file.toString();
 
-            if(saveMemo) {
-                let { x, y, width, height, text } = saveMemo;
+            if(fileData) {
+                var saveObj = JSON.parse(fileData);
 
-                createMemo({x: x, y:y, width: width, height: height, text: text});
-                isNew = false;
+                for(let i in saveObj) {
+
+                    let saveMemo = saveObj[i];
+
+                    if(saveMemo) {
+                        let { x, y, width, height, text } = saveMemo;
+
+                        createMemo({x: x, y:y, width: width, height: height, text: text});
+                        isNew = false;
+                    }
+                }
             }
         }
-    }
+    });
 
     if(isNew) {
         createMemo();
@@ -88,7 +99,7 @@ const saveFile = () => {
     let file = "./save.txt";
     let str  = JSON.stringify(saveObj);
 
-    fs.writeFile(file, str, (err) => {
+    fs.writeFileSync(file, str, (err) => {
         if(err) {
             console.error(err);
         }
