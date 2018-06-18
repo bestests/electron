@@ -3,7 +3,8 @@ const { remote, ipcRenderer } = require("electron");
 const { Menu, MenuItem } = remote;
 const render = require("./memo_render.js").memoRender;
 
-const menu = new Menu();
+const menu    = new Menu();
+const thisWin = remote.getCurrentWindow();
 
 // html event start
 
@@ -18,31 +19,31 @@ $("textarea").on("input", function (e) {
             thisVal = encodeURI(thisVal);
         }
 
-        render.sendMemoDetail(ipcRenderer, {id: remote.getCurrentWindow().id, text: thisVal});
+        render.sendMemoDetail(ipcRenderer, {id: thisWin.id, text: thisVal});
     }, 250);
 });
 
 remote.getCurrentWindow().on("move", () => {
-    let position = remote.getCurrentWindow().getPosition();
-    let [ x, y ] = position;
-    console.log(remote.getCurrentWindow().getPosition());
+
+    let [ x, y ] = thisWin.getPosition();
+
     if(timer) clearTimeout(timer);
 
     timer = setTimeout(() => {
         timer = null;
-        render.savePosition(ipcRenderer, {id: remote.getCurrentWindow().id, x: x, y: y});
+        render.savePosition(ipcRenderer, {id: thisWin.id, x: x, y: y});
     }, 250);
 });
 
 remote.getCurrentWindow().on("resize", () => {
-    let size              = remote.getCurrentWindow().getSize();
-    let [ width, height ] = size;
 
-    render.saveSize(ipcRenderer, {id: remote.getCurrentWindow().id, width: width, height: height});
+    let [ width, height ] = thisWin.getSize();
+
+    render.saveSize(ipcRenderer, {id: thisWin.id, width: width, height: height});
 });
 
 remote.getCurrentWindow().on("show", () => {
-    render.memoRender.memoInit(ipcRenderer, {id: remote.getCurrentWindow().id});
+    render.memoInit(ipcRenderer, {id: thisWin.id});
 });
 
 // html event end
@@ -54,12 +55,12 @@ menu.append(new MenuItem({label: "New Memo", click() {
 }}));
 
 menu.append(new MenuItem({label: "Close", click() {
-    render.closeMemo(ipcRenderer, remote.getCurrentWindow().id);
+    render.closeMemo(ipcRenderer, thisWin.id);
 }}));
 
 window.addEventListener("contextmenu", (e) => {
     e.preventDefault();
-    menu.popup({window: remote.getCurrentWindow()})
+    menu.popup({window: thisWin})
 }, false);
 
 // context menu end
@@ -73,7 +74,7 @@ ipcRenderer.on("MEMOINIT-reply", (event, obj) => {
 });
 
 ipcRenderer.on("Close-Memo-Reply", (event, obj) => {
-    remote.getCurrentWindow().close();
+    thisWin.close();
 });
 
 // ipcRenderer.on End
