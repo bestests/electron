@@ -26,7 +26,7 @@ const init = () => {
         for(let i in saveObj) {
 
             let saveMemo = saveObj[i];
-            
+
             if(saveMemo) {
                 let { x, y, width, height, text } = saveMemo;
 
@@ -37,7 +37,7 @@ const init = () => {
     }
 
     if(isNew) {
-        createMemo();   
+        createMemo();
     }
 };
 
@@ -46,8 +46,8 @@ const createMemo = (obj) => {
     let options = {
         width: 300,
         height: 300,
-        backgroundColor: "#ffff00", 
-        frame: false, 
+        backgroundColor: "#ffff00",
+        frame: false,
         show: false
     };
 
@@ -57,7 +57,7 @@ const createMemo = (obj) => {
         if(obj.x)      options.x      = obj.x;
         if(obj.y)      options.y      = obj.y;
         if(obj.width)  options.width  = obj.width;
-        if(obj.height) options.height = obj.height;  
+        if(obj.height) options.height = obj.height;
         if(obj.text)   text           = obj.text;
     }
 
@@ -120,7 +120,7 @@ app.on("ready", () => {
                     let memos    = memoObj[i].window;
                     let [ x, y ] = memos.getPosition();
                     let [ width, height ] = memos.getSize();
-                    
+
                     saveObj[i] = {x: x, y: y, width: width, height: height};
                 }
             }
@@ -145,12 +145,19 @@ app.on("ready", () => {
     });
 
     ipcMain.on("SAVE-POSITION", (event, obj) => {
-        
-        if(obj) {
-            if(!saveObj[obj.id]) saveObj[obj.id] = {};
 
+        if(obj) {
             saveObj[obj.id].x = obj.x;
             saveObj[obj.id].y = obj.y;
+
+            saveFile();
+        }
+    });
+
+    ipcMain.on("SAVE-SIZE", (event, obj) => {
+        if(obj) {
+            saveObj[obj.id].width  = obj.width;
+            saveObj[obj.id].height = obj.height;
 
             saveFile();
         }

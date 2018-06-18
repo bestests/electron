@@ -9,12 +9,13 @@ const memoRender = {
         ipcRenderer.send("Close-Memo", {idx: idx});
     },
     sendMemoDetail: (ipcRenderer, obj) => {
-        console.log(obj);
         ipcRenderer.send("SAVE-TEXT", obj);
     },
     savePosition: (ipcRenderer, obj) => {
-        console.log(obj);
         ipcRenderer.send("SAVE-POSITION", obj);
+    },
+    saveSize: (ipcRenderer, obj) => {
+        ipcRenderer.send("SAVE-SIZE", obj);
     }
 };
 
