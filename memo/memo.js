@@ -46,6 +46,24 @@ thisWin.on("show", () => {
     render.memoInit(ipcRenderer, {id: thisWin.id});
 });
 
+document.addEventListener("drop", function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    let fileArr = [];
+
+    for(let file of event.dataTransfer.files) {
+        fileArr.push(file.path);
+    }
+
+    render.uploadFile(ipcRenderer, {id: thisWin.id, fileArr: fileArr});
+});
+
+document.addEventListener("dragover", function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+});
+
 // html event end
 
 // context menu start

@@ -28,6 +28,27 @@ const Memo = function (x = 810, y=375, width=300, heigth=300, text="") {
     };
 };
 
+const randomStr = () => {
+
+    let toDate = new Date();
+
+    let year  = toDate.getFullYear().toString();
+    let month = twoLen((toDate.getMonth() + 1).toString());
+    let date  = twoLen(toDate.getDate().toString());
+    let hour  = twoLen(toDate.getHours().toString());
+    let min   = twoLen(toDate.getMinutes().toString());
+    let sec   = twoLen(toDate.getSeconds().toString());
+    let mil   = twoLen(toDate.getMilliseconds().toString());
+
+    let dateStr = year + month + date + hour + min + sec + mil;
+
+    return dateStr + "_" + (Math.random().toString(36).slice(2).toUpperCase());
+};
+
+const twoLen = (str) => {
+    return str.length < 2 ? "0" + str : str;
+};
+
 const init = () => {
 
     let isNew = true;
@@ -110,7 +131,7 @@ const createMemo = (obj) => {
     let memo = new BrowserWindow(options);
 
     memo.loadFile("./memo.html");
-//    memo.openDevTools();
+    memo.openDevTools();
 
     memoObj[memo.id + ""] = {window: memo};
 
@@ -125,7 +146,8 @@ const createMemo = (obj) => {
             y: options.y,
             width: options.width,
             height: options.height,
-            text: options.text
+            text: options.text,
+            fileArr: []
         };
     });
 };
@@ -140,6 +162,61 @@ const saveFile = () => {
         }
     });
 }
+
+const copyFile = (id, filePath) => {
+
+    var file = "./save/";
+    let str = randomStr();
+    let oriFileNm = "";
+    let reFileNm = "";
+    let fileExt = "";
+
+    fs.access(file, fs.constants.F_OK | fs.constants.W_OK, (err) => {
+
+        let folderChk = false;
+        
+        if(err) {
+            if(err.code === "ENOENT") {
+                console.log("file : " + file);
+                fs.mkdirSync(file);
+
+                folderChk = true;
+            }
+            console.log(err);
+        } else {
+            folderChk = true;
+        }
+
+        if(folderChk) {
+            console.log("filePath : " + filePath);
+
+            oriFileNm = filePath.substr(filePath.lastIndexOf("\\") + 1, filePath.length);
+            fileExt   = oriFileNm.substr(oriFileNm.lastIndexOf(".") + 1, oriFileNm.length).toLowerCase();
+            reFileNm  = str + "." + fileExt;
+
+            file += reFileNm;
+
+            console.log(file);
+
+            fs.copyFile(filePath, file, (err) => {
+                if(err) {
+                    console.log(err);
+                } else {
+                    saveObj[id].fileArr.push({
+                        oriFileNm: oriFileNm,
+                        reFileNm: reFileNm,
+                        fileExt: fileExt
+                    });
+                }
+            });
+        }
+    });
+
+    return {
+        oriFileNm: oriFileNm,
+        reFileNm: reFileNm
+    };
+};
 
 app.on("ready", () => {
 
@@ -223,6 +300,17 @@ app.on("ready", () => {
 
             saveFile();
         }
+    });
+
+    ipcMain.on("UPLOAD-FILE", (event, obj) => {
+        if(obj) {
+            if(obj.fileArr) {
+                for(let filePath of obj.fileArr) {
+                   copyFile(obj.id, filePath);
+                }
+            }
+        }
+        saveFile();
     });
 
     ipcMain.on("Close-Memo", (event, obj) => {

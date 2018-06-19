@@ -16,6 +16,9 @@ const memoRender = {
     },
     saveSize: (ipcRenderer, obj) => {
         ipcRenderer.send("SAVE-SIZE", obj);
+    },
+    uploadFile: (ipcRenderer, obj) => {
+        ipcRenderer.send("UPLOAD-FILE", obj);
     }
 };
 
