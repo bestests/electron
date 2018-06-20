@@ -6,12 +6,13 @@ let tray;
 const memoObj = {};
 var saveObj = {};
 
-const Memo = function (x = 810, y=375, width=300, heigth=300, text="") {
+const Memo = function (x = 810, y=375, width=300, heigth=300, text="", fileArr=[]) {
     this.x               = x;
     this.y               = y;
     this.width           = width;
     this.height          = heigth;
     this.text            = text;
+    this.fileArr         = fileArr;
     this.backgroundColor = "#ffff00",
     this.frame           = false,
     this.show            = false
@@ -22,6 +23,7 @@ const Memo = function (x = 810, y=375, width=300, heigth=300, text="") {
         width: this.width,
         height: this.height,
         text : this.text,
+        fileArr: this.fileArr,
         backgroundColor: this.backgroundColor,
         frame: this.frame,
         show: this.show
@@ -95,9 +97,9 @@ const init = () => {
 
                     if(saveMemo) {
 
-                        let { x, y, width, height, text } = saveMemo;
+                        let { x, y, width, height, text, fileArr } = saveMemo;
 
-                        createMemo({x: x, y:y, width: width, height: height, text: text});
+                        createMemo({x: x, y:y, width: width, height: height, text: text, fileArr: fileArr});
 
                         isNew = false;
 
@@ -123,7 +125,7 @@ const createMemo = (obj) => {
     let options;
 
     if(obj) {
-        options = new Memo(obj.x, obj.y, obj.width, obj.height, obj.text);
+        options = new Memo(obj.x, obj.y, obj.width, obj.height, obj.text, obj.fileArr);
     } else {
         options = new Memo();
     }
@@ -131,7 +133,7 @@ const createMemo = (obj) => {
     let memo = new BrowserWindow(options);
 
     memo.loadFile("./memo.html");
-    memo.openDevTools();
+//    memo.openDevTools();
 
     memoObj[memo.id + ""] = {window: memo};
 
@@ -147,7 +149,7 @@ const createMemo = (obj) => {
             width: options.width,
             height: options.height,
             text: options.text,
-            fileArr: []
+            fileArr: options.fileArr
         };
     });
 };
@@ -163,7 +165,7 @@ const saveFile = () => {
     });
 }
 
-const copyFile = (id, filePath) => {
+const copyFile = (id, fileArr) => {
 
     var file = "./save/";
     let str = randomStr();
@@ -177,7 +179,7 @@ const copyFile = (id, filePath) => {
         
         if(err) {
             if(err.code === "ENOENT") {
-                console.log("file : " + file);
+            
                 fs.mkdirSync(file);
 
                 folderChk = true;
@@ -188,34 +190,35 @@ const copyFile = (id, filePath) => {
         }
 
         if(folderChk) {
-            console.log("filePath : " + filePath);
+            for(let filePath of fileArr) {
+                
+                let fileProcess = () => {
+                    return new Promise((resolve, reject) => {
+                        if(filePath) {
 
-            oriFileNm = filePath.substr(filePath.lastIndexOf("\\") + 1, filePath.length);
-            fileExt   = oriFileNm.substr(oriFileNm.lastIndexOf(".") + 1, oriFileNm.length).toLowerCase();
-            reFileNm  = str + "." + fileExt;
+                            let oriFileNm = filePath.substr(filePath.lastIndexOf("\\") + 1, filePath.length);
+                            let fileExt   = oriFileNm.substr(oriFileNm.lastIndexOf(".") + 1, oriFileNm.length);
+                            let reFileNm  = randomStr() + "." + fileExt;
 
-            file += reFileNm;
+                            file += reFileNm;
 
-            console.log(file);
+                            fs.copyFileSync(filePath, file);
 
-            fs.copyFile(filePath, file, (err) => {
-                if(err) {
-                    console.log(err);
-                } else {
-                    saveObj[id].fileArr.push({
-                        oriFileNm: oriFileNm,
-                        reFileNm: reFileNm,
-                        fileExt: fileExt
+                            resolve({oriFileNm: oriFileNm, reFileNm: reFileNm, fileExt: fileExt});
+
+                        } else {
+                            reject();
+                        }
                     });
-                }
-            });
+                };
+
+                fileProcess().then((obj) => {
+                    saveObj[id].fileArr.push(obj);
+                    saveFile();
+                });
+            }
         }
     });
-
-    return {
-        oriFileNm: oriFileNm,
-        reFileNm: reFileNm
-    };
 };
 
 app.on("ready", () => {
@@ -241,8 +244,8 @@ app.on("ready", () => {
         
         if(obj.id) {
             
-            if(saveObj[obj.id].text) {
-                event.sender.send("MEMOINIT-reply", {id: obj.id, text: saveObj[obj.id].text});
+            if(saveObj[obj.id].text || saveObj[obj.id].fileArr.length) {
+                event.sender.send("MEMOINIT-reply", {id: obj.id, text: saveObj[obj.id].text, fileArr: saveObj[obj.id].fileArr});
             }
         }
     });
@@ -304,13 +307,11 @@ app.on("ready", () => {
 
     ipcMain.on("UPLOAD-FILE", (event, obj) => {
         if(obj) {
-            if(obj.fileArr) {
-                for(let filePath of obj.fileArr) {
-                   copyFile(obj.id, filePath);
-                }
+            if(obj.fileArr) {        
+                copyFile(obj.id, obj.fileArr);
             }
         }
-        saveFile();
+        event.sender.send("UPLOAD-FILE-reply", {fileArr: saveObj[obj.id].fileArr});
     });
 
     ipcMain.on("Close-Memo", (event, obj) => {

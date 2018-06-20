@@ -6,6 +6,24 @@ const render = require("./memo_render.js").memoRender;
 const menu    = new Menu();
 const thisWin = remote.getCurrentWindow();
 
+const fileProcess = (fileArr) => {
+
+    $("#fileArea").html("");
+
+    if(fileArr) {
+        for(let file of fileArr) {
+            var aObj = $("<a>").attr("href", "./save/" + file.reFileNm)
+                               .attr("download", file.oriFileNm)
+                               .attr("target", "_blank")
+                               .text(file.oriFileNm);
+
+            var pObj = $("<p>").append(aObj); 
+
+            $("#fileArea").append(pObj);
+        }
+    }
+};
+
 // html event start
 
 var timer = 0;
@@ -86,8 +104,20 @@ window.addEventListener("contextmenu", (e) => {
 // ipcRenderer.on Start
 
 ipcRenderer.on("MEMOINIT-reply", (event, obj) => {
+
     if(obj.text) {
         $("#textObj").val(decodeURI(obj.text));
+    }
+    if(obj.fileArr) {
+        fileProcess(obj.fileArr);
+    }
+});
+
+ipcRenderer.on("UPLOAD-FILE-reply", (event, obj) => {
+    if(obj) {
+        if(obj.fileArr) {
+            fileProcess(obj.fileArr);
+        }
     }
 });
 

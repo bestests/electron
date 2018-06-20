@@ -7,11 +7,18 @@
             textarea {
                 -webkit-app-region: no-drag;
             }
+
+            #fileArea p a {
+                color: black;
+                text-decoration: none;
+                -webkit-app-region: no-drag;
+            }
         </style>
     </head>
     <body style="-webkit-app-region: drag;">
         <h1>MEMO</h1>
         <textarea id="textObj" rows="13" cols="32" style="background-color: #ffff00;"></textarea>
+        <div id="fileArea"></div>
         <script>require("./memo.js");</script>
     </body>
 </html>
