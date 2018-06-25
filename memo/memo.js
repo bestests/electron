@@ -114,6 +114,7 @@ ipcRenderer.on("MEMOINIT-reply", (event, obj) => {
 });
 
 ipcRenderer.on("UPLOAD-FILE-reply", (event, obj) => {
+    console.log(obj);
     if(obj) {
         if(obj.fileArr) {
             fileProcess(obj.fileArr);

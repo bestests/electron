@@ -133,7 +133,7 @@ const createMemo = (obj) => {
     let memo = new BrowserWindow(options);
 
     memo.loadFile("./memo.html");
-//    memo.openDevTools();
+    memo.openDevTools();
 
     memoObj[memo.id + ""] = {window: memo};
 
@@ -165,7 +165,7 @@ const saveFile = () => {
     });
 }
 
-const copyFile = (id, fileArr) => {
+const copyFile = (id, fileArr, event) => {
 
     var file = "./save/";
     let str = randomStr();
@@ -215,6 +215,7 @@ const copyFile = (id, fileArr) => {
                 fileProcess().then((obj) => {
                     saveObj[id].fileArr.push(obj);
                     saveFile();
+                    event.sender.send("UPLOAD-FILE-reply", {fileArr: saveObj[id].fileArr});
                 });
             }
         }
@@ -308,10 +309,9 @@ app.on("ready", () => {
     ipcMain.on("UPLOAD-FILE", (event, obj) => {
         if(obj) {
             if(obj.fileArr) {        
-                copyFile(obj.id, obj.fileArr);
+                copyFile(obj.id, obj.fileArr, event);
             }
         }
-        event.sender.send("UPLOAD-FILE-reply", {fileArr: saveObj[obj.id].fileArr});
     });
 
     ipcMain.on("Close-Memo", (event, obj) => {
